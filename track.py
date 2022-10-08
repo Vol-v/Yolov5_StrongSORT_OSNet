@@ -48,7 +48,7 @@ def run(
         imgsz=(640, 640),  # inference size (height, width)
         conf_thres=0.25,  # confidence threshold
         iou_thres=0.45,  # NMS IOU threshold
-        max_det=1000,  # maximum detections per image
+        max_det=2,  # maximum detections per image. I have only 2 dogs
         device='',  # cuda device, i.e. 0 or 0,1,2,3 or cpu
         show_vid=False,  # show results
         save_txt=False,  # save results to *.txt
@@ -160,6 +160,18 @@ def run(
         # Apply NMS
         pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
         dt[2] += time_sync() - t3
+
+        #since there is only one example if each class, in case if there are two detections of same class- replace the one with lower probability
+        # to the oposite class
+        pred_temp = pred[0] 
+        pred_temp = pred_temp.to('cpu')
+        if len(pred_temp) > 1 and bool(pred_temp[0,5] == pred_temp[1,5]): #5 - class id 
+            minconf = np.argmin(pred_temp[:,4])
+            pred_temp[minconf,5] = 1 - pred_temp[minconf,5]
+            pred_temp = pred_temp.clone().detach()
+            pred_temp = pred_temp.to("cuda:0")
+            pred[0] = pred_temp
+            # print('pred after if:',pred)
 
         # Process detections
         for i, det in enumerate(pred):  # detections per image
