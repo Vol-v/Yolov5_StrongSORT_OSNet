@@ -170,7 +170,7 @@ def run(
             pred_temp[minconf,5] = 1 - pred_temp[minconf,5]
             pred_temp = pred_temp.clone().detach()
             pred_temp = pred_temp.to("cuda:0")
-            pred[0] = pred_temp
+            pred[0] = pred_tempg
             # print('pred after if:',pred)
 
         # Process detections
